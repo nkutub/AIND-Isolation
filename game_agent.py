@@ -209,11 +209,59 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+
+        # My Code starts here
+        def max_value(self, state, current_depth, max_depth):
+            """Implement depth-limited minimax search algorithm as described in
+            the lectures.
+            """
+            # If the game has reasched an end state, return the player as loser
+            if state.utility(self, state.active_player) != 0:
+                return float("-inf")
+            # Eveluate the heuristic at this state
+            score = self.score(state)
+            # If the max depth level is reached do not go deeper, or time exceeded
+            if self.depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+                return score
+            for legal_move in state.get_legal_moves():
+                score = max(score,
+                            min_value(self,
+                                      state.forecast_move(legal_move),
+                                      current_depth + 1,
+                                      max_depth))
+            return score
+
+        def min_value(self, state, current_depth, max_depth):
+            """Implement depth-limited minimax search algorithm as described in
+            the lectures.
+            """
+            # If the game has reasched an end state, return the player as winner
+            if state.utility(self, state.active_player) != 0:
+                return float("inf")
+            # Eveluate the heuristic at this state
+            score = self.score(state)
+            if self.depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+                return score
+            for legal_move in state.get_legal_moves():
+                score = min(score,
+                            max_value(self,
+                                      state.forecast_move(legal_move),
+                                      current_depth + 1,
+                                      max_depth))
+            return score
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
-
-        # TODO: finish this function!
-        raise NotImplementedError
+        current_depth = 1
+        # Body of minimax_decision:
+        legal_moves = game.get_legal_moves()
+        if (not legal_moves) or (depth == current_depth):
+            return (-1, -1)
+        return argmax(game.get_legal_moves(),
+                      key=lambda m: min_value(self,
+                                              game.forecast_move(m),
+                                              current_depth + 1,
+                                              depth))
 
 
 class AlphaBetaPlayer(IsolationPlayer):
