@@ -252,16 +252,16 @@ class MinimaxPlayer(IsolationPlayer):
 
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
-        current_depth = 1
+        current_depth = 0
         # Body of minimax_decision:
         legal_moves = game.get_legal_moves()
         if (not legal_moves) or (depth == current_depth):
             return (-1, -1)
-        return argmax(game.get_legal_moves(),
-                      key=lambda m: min_value(self,
-                                              game.forecast_move(m),
-                                              current_depth + 1,
-                                              depth))
+        score = lambda legal_move: min_value(self,
+                                             game.forecast_move(legal_move),
+                                             current_depth + 1,
+                                             depth)
+        return max(game.get_legal_moves(), key=score)
 
 
 class AlphaBetaPlayer(IsolationPlayer):
