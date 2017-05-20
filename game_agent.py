@@ -35,7 +35,14 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    return float(len(game.get_legal_moves(player)))
+
 
 
 def custom_score_2(game, player):
@@ -216,12 +223,12 @@ class MinimaxPlayer(IsolationPlayer):
             the lectures.
             """
             # If the game has reasched an end state, return the player as loser
-            if state.utility(self, state.active_player) != 0:
+            if state.utility(state.active_player) != 0:
                 return float("-inf")
             # Eveluate the heuristic at this state
-            score = self.score(state)
+            score = self.score(state, self)
             # If the max depth level is reached do not go deeper, or time exceeded
-            if self.depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
                 return score
             for legal_move in state.get_legal_moves():
                 score = max(score,
@@ -236,11 +243,11 @@ class MinimaxPlayer(IsolationPlayer):
             the lectures.
             """
             # If the game has reasched an end state, return the player as winner
-            if state.utility(self, state.active_player) != 0:
+            if state.utility(state.active_player) != 0:
                 return float("inf")
             # Eveluate the heuristic at this state
-            score = self.score(state)
-            if self.depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+            score = self.score(state, self)
+            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
                 return score
             for legal_move in state.get_legal_moves():
                 score = min(score,
@@ -250,6 +257,26 @@ class MinimaxPlayer(IsolationPlayer):
                                       max_depth))
             return score
 
+        def minmax_value(self, state, current_depth, max_depth, is_min=True):
+            """Implement depth-limited minimax search algorithm as described in
+            the lectures.
+            """
+            # If the game has reasched an end state, return the player as winner
+            if state.utility(state.active_player) != 0:
+                return float("inf") if is_min else float("-inf")
+            # Eveluate the heuristic at this state
+            score = self.score(state, self)
+            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+                return score
+            for legal_move in state.get_legal_moves():
+                next_score = minmax_value(self,
+                                          state.forecast_move(legal_move),
+                                          current_depth + 1,
+                                          max_depth,
+                                          (not is_min))
+                score = min(score, next_score) if is_min else min(score, next_score)
+            return score
+
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         current_depth = 0
@@ -257,10 +284,10 @@ class MinimaxPlayer(IsolationPlayer):
         legal_moves = game.get_legal_moves()
         if (not legal_moves) or (depth == current_depth):
             return (-1, -1)
-        score = lambda legal_move: min_value(self,
-                                             game.forecast_move(legal_move),
-                                             current_depth + 1,
-                                             depth)
+        score = lambda legal_move: minmax_value(self,
+                                                game.forecast_move(legal_move),
+                                                current_depth + 1,
+                                                depth)
         return max(game.get_legal_moves(), key=score)
 
 
