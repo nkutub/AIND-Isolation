@@ -95,4 +95,5 @@ def submit(options):
                    project_name,
                    filenames, 
                    environment = options.environment,
-                   max_zip_size=max_size)
+                   max_zip_size=max_size,
+                   jwt_path = "/Users/naderkutub/nkconsultingGD/udacity/AIND/sudoku/AIND-Sudoku/.udacity-pa/jwt")

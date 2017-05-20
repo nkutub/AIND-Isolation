@@ -119,7 +119,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=6, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -218,54 +218,17 @@ class MinimaxPlayer(IsolationPlayer):
         """
 
         # My Code starts here
-        def max_value(self, state, current_depth, max_depth):
-            """Implement depth-limited minimax search algorithm as described in
-            the lectures.
-            """
-            # If the game has reasched an end state, return the player as loser
-            if state.utility(state.active_player) != 0:
-                return float("-inf")
-            # Eveluate the heuristic at this state
-            score = self.score(state, self)
-            # If the max depth level is reached do not go deeper, or time exceeded
-            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
-                return score
-            for legal_move in state.get_legal_moves():
-                score = max(score,
-                            min_value(self,
-                                      state.forecast_move(legal_move),
-                                      current_depth + 1,
-                                      max_depth))
-            return score
-
-        def min_value(self, state, current_depth, max_depth):
+        def minmax_value(self, state, current_depth, max_depth, is_min_layer=True):
             """Implement depth-limited minimax search algorithm as described in
             the lectures.
             """
             # If the game has reasched an end state, return the player as winner
             if state.utility(state.active_player) != 0:
-                return float("inf")
+                return float("inf") if is_min_layer else float("-inf")
             # Eveluate the heuristic at this state
             score = self.score(state, self)
-            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
-                return score
-            for legal_move in state.get_legal_moves():
-                score = min(score,
-                            max_value(self,
-                                      state.forecast_move(legal_move),
-                                      current_depth + 1,
-                                      max_depth))
-            return score
-
-        def minmax_value(self, state, current_depth, max_depth, is_min=True):
-            """Implement depth-limited minimax search algorithm as described in
-            the lectures.
-            """
-            # If the game has reasched an end state, return the player as winner
-            if state.utility(state.active_player) != 0:
-                return float("inf") if is_min else float("-inf")
-            # Eveluate the heuristic at this state
-            score = self.score(state, self)
+            if self.time_left() < self.TIMER_THRESHOLD:
+                print("_______TIMEOUT_________")
             if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
                 return score
             for legal_move in state.get_legal_moves():
@@ -273,8 +236,12 @@ class MinimaxPlayer(IsolationPlayer):
                                           state.forecast_move(legal_move),
                                           current_depth + 1,
                                           max_depth,
-                                          (not is_min))
-                score = min(score, next_score) if is_min else min(score, next_score)
+                                          (not is_min_layer))
+                score = min(score, next_score) if is_min_layer else min(score, next_score)
+            marker = ""
+            for _ in range(1, current_depth):
+                marker += "_"
+            print(marker + str(score))
             return score
 
         if self.time_left() < self.TIMER_THRESHOLD:
