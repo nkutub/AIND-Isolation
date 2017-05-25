@@ -3,6 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
+# from anytree import Node, RenderTree
 
 
 class SearchTimeout(Exception):
@@ -119,7 +120,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=6, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -218,7 +219,7 @@ class MinimaxPlayer(IsolationPlayer):
         """
 
         # My Code starts here
-        def minmax_value(self, state, current_depth, max_depth, is_min_layer=True):
+        def minmax_value(self, state, current_depth, max_depth, parent_node, is_min_layer=True):
             """Implement depth-limited minimax search algorithm as described in
             the lectures.
             """
@@ -227,35 +228,49 @@ class MinimaxPlayer(IsolationPlayer):
                 return float("inf") if is_min_layer else float("-inf")
             # Eveluate the heuristic at this state
             score = self.score(state, self)
-            if self.time_left() < self.TIMER_THRESHOLD:
-                print("_______TIMEOUT_________")
-            if max_depth == current_depth or self.time_left() < self.TIMER_THRESHOLD:
+            # node = Node(str(score), parent=parent_node)
+            node = None
+            #if self.time_left() < self.TIMER_THRESHOLD:
+               # print("_______TIMEOUT_________")
+            if  max_depth == current_depth and not is_min_layer:
                 return score
+            new_score = float("inf") if is_min_layer else float("-inf")
             for legal_move in state.get_legal_moves():
                 next_score = minmax_value(self,
                                           state.forecast_move(legal_move),
                                           current_depth + 1,
                                           max_depth,
+                                          node,
                                           (not is_min_layer))
-                score = min(score, next_score) if is_min_layer else min(score, next_score)
-            marker = ""
-            for _ in range(1, current_depth):
-                marker += "_"
-            print(marker + str(score))
-            return score
+                new_score = min(new_score, next_score) if is_min_layer else max(new_score, next_score)
+                if self.time_left() < self.TIMER_THRESHOLD:
+                    raise SearchTimeout()
+            # marker = ""
+            # for _ in range(1, current_depth):
+            #     marker += "_"
+            #print(marker + str(score))
+            # node.name = str(new_score)
+            return new_score
 
+        # root_node = Node("*") 
+        root_node = None
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         current_depth = 0
         # Body of minimax_decision:
+        best_move = (-1, -1)
         legal_moves = game.get_legal_moves()
-        if (not legal_moves) or (depth == current_depth):
-            return (-1, -1)
+        if (not legal_moves):
+            return best_move
         score = lambda legal_move: minmax_value(self,
                                                 game.forecast_move(legal_move),
                                                 current_depth + 1,
-                                                depth)
-        return max(game.get_legal_moves(), key=score)
+                                                depth,
+                                                root_node)
+        best_move = max(game.get_legal_moves(), key=score)
+        # for pre, fill, node in RenderTree(root_node):
+        #     print("%s%s" % (pre, node.name))
+        return best_move
 
 
 class AlphaBetaPlayer(IsolationPlayer):

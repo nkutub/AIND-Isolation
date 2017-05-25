@@ -98,3 +98,7 @@ ENV/
 
 # VScode settings
 .vscode
+
+# udacit testing results
+*.json
+*.zip
