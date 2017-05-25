@@ -104,4 +104,5 @@ ENV/
 *.zip
 
 #udacity pa jwt 
-jwt
+.udacity-pa/jwt
+.udacity-pa/projects.py
