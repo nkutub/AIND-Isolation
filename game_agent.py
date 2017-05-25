@@ -226,14 +226,12 @@ class MinimaxPlayer(IsolationPlayer):
             # If the game has reasched an end state, return the player as winner
             if state.utility(state.active_player) != 0:
                 return float("inf") if is_min_layer else float("-inf")
-            # Eveluate the heuristic at this state
-            score = self.score(state, self)
             # node = Node(str(score), parent=parent_node)
             node = None
             #if self.time_left() < self.TIMER_THRESHOLD:
                # print("_______TIMEOUT_________")
-            if  max_depth == current_depth and not is_min_layer:
-                return score
+            if  max_depth == current_depth:
+                return self.score(state, self)
             new_score = float("inf") if is_min_layer else float("-inf")
             for legal_move in state.get_legal_moves():
                 next_score = minmax_value(self,

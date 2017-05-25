@@ -102,3 +102,6 @@ ENV/
 # udacit testing results
 *.json
 *.zip
+
+#udacity pa jwt 
+jwt
