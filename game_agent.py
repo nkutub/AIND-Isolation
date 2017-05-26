@@ -228,10 +228,10 @@ class MinimaxPlayer(IsolationPlayer):
             # If the game has reasched an end state, return the player as winner
             if state.utility(state.active_player) != 0:
                 return new_score
-            # If the max depth was reached, return the current score 
+            # If the max depth was reached, return the current score
             if  max_depth == current_depth:
                 return self.score(state, self)
-            # For each legal move, calculate the score 
+            # For each legal move, calculate the score
             for legal_move in state.get_legal_moves():
                 next_score = minmax_value(self,
                                           state.forecast_move(legal_move),
@@ -239,8 +239,11 @@ class MinimaxPlayer(IsolationPlayer):
                                           max_depth,
                                           (not is_min_layer))
                 # Replace new score if less or more depending on is_min_layer flag
-                new_score = min(new_score, next_score) if is_min_layer else max(new_score, next_score)
-                # Break and return to calling fucntion if timout reached. 
+                if is_min_layer:
+                    new_score = min(new_score, next_score)
+                else:
+                    new_score = max(new_score, next_score)
+                # Break and return to calling fucntion if timout reached.
                 if self.time_left() < self.TIMER_THRESHOLD:
                     raise SearchTimeout()
             # Return the new score found for this level
@@ -249,9 +252,9 @@ class MinimaxPlayer(IsolationPlayer):
         # Body of minimax_decision:
         legal_moves = game.get_legal_moves()
         # If there is no legal moves, then return (-1, -1)
-        if (not legal_moves):
+        if not legal_moves:
             return (-1, -1)
-        # Build the score based on the minmax fucntion 
+        # Build the score based on the minmax fucntion
         score = lambda legal_move: minmax_value(self,
                                                 game.forecast_move(legal_move),
                                                 1,
@@ -305,7 +308,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            return self.alphabeta(game, 3)
+            return self.alphabeta(game, self.search_depth)
 
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
@@ -362,42 +365,58 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # My Code starts here
-        def minmax_value(self, state, current_depth, max_depth, is_min_layer=True):
+        def minmax_value(self, state, current_depth, max_depth, alpha, beta, is_min_layer=True):
             """Implement depth-limited minimax search algorithm as described in
             the lectures.
             """
             # Initialize the new score traking variable for this level
-            new_score = float("inf") if is_min_layer else float("-inf")
+            new_score = (float("inf"), alpha, beta) if is_min_layer else (float("-inf"), alpha, beta)
             # If the game has reasched an end state, return the player as winner
             if state.utility(state.active_player) != 0:
                 return new_score
-            # If the max depth was reached, return the current score 
+            # If the max depth was reached, return the current score
             if  max_depth == current_depth:
-                return self.score(state, self)
-            # For each legal move, calculate the score 
+                return (self.score(state, self), alpha, beta)
+            # Initialize the new values for alpha and beta
+            new_val = new_score[0]
+            new_alpha = alpha
+            new_beta = beta
+            # For each legal move, calculate the score
             for legal_move in state.get_legal_moves():
                 next_score = minmax_value(self,
                                           state.forecast_move(legal_move),
                                           current_depth + 1,
                                           max_depth,
+                                          new_alpha,
+                                          new_beta,
                                           (not is_min_layer))
                 # Replace new score if less or more depending on is_min_layer flag
-                new_score = min(new_score, next_score) if is_min_layer else max(new_score, next_score)
-                # Break and return to calling fucntion if timout reached. 
+                if is_min_layer:
+                    new_beta = min(new_beta, next_score[0])
+                    new_val = min(new_val, next_score[0])
+                else:
+                    new_alpha = max(new_alpha, next_score[0])
+                    new_val = max(new_val, next_score[0])
+                # Break and return to parent if alpha is greater than beta
+                if new_alpha >= new_beta:
+                    break
+                # Break and return to calling fucntion if timout reached.
                 if self.time_left() < self.TIMER_THRESHOLD:
                     raise SearchTimeout()
             # Return the new score found for this level
-            return new_score
+            return (new_val, new_alpha, new_beta)
 
         # Body of minimax_decision:
         legal_moves = game.get_legal_moves()
         # If there is no legal moves, then return (-1, -1)
-        if (not legal_moves):
+        if not legal_moves:
             return (-1, -1)
-        # Build the score based on the minmax fucntion 
+        # Build the score based on the minmax fucntion
         score = lambda legal_move: minmax_value(self,
                                                 game.forecast_move(legal_move),
                                                 1,
-                                                depth)
+                                                depth,
+                                                alpha,
+                                                beta)[0]
         # The parent node is always a max layer so return move for max score of all legal moves
         return max(legal_moves, key=score)

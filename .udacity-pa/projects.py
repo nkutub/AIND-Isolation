@@ -96,4 +96,4 @@ def submit(options):
                    filenames, 
                    environment = options.environment,
                    max_zip_size=max_size,
-                   jwt_path = "/Users/naderk/Documents/Projects/AIND-Isolation/.udacity-pa/jwt")
+                   jwt_path = "/Users/naderkutub/nkconsultingGD/udacity/AIND/isolation/AIND-Isolation/.udacity-pa/jwt")
