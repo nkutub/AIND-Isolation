@@ -219,56 +219,45 @@ class MinimaxPlayer(IsolationPlayer):
         """
 
         # My Code starts here
-        def minmax_value(self, state, current_depth, max_depth, parent_node, is_min_layer=True):
+        def minmax_value(self, state, current_depth, max_depth, is_min_layer=True):
             """Implement depth-limited minimax search algorithm as described in
             the lectures.
             """
+            # Initialize the new score traking variable for this level
+            new_score = float("inf") if is_min_layer else float("-inf")
             # If the game has reasched an end state, return the player as winner
             if state.utility(state.active_player) != 0:
-                return float("inf") if is_min_layer else float("-inf")
-            # node = Node(str(score), parent=parent_node)
-            node = None
-            #if self.time_left() < self.TIMER_THRESHOLD:
-               # print("_______TIMEOUT_________")
+                return new_score
+            # If the max depth was reached, return the current score 
             if  max_depth == current_depth:
                 return self.score(state, self)
-            new_score = float("inf") if is_min_layer else float("-inf")
+            # For each legal move, calculate the score 
             for legal_move in state.get_legal_moves():
                 next_score = minmax_value(self,
                                           state.forecast_move(legal_move),
                                           current_depth + 1,
                                           max_depth,
-                                          node,
                                           (not is_min_layer))
+                # Replace new score if less or more depending on is_min_layer flag
                 new_score = min(new_score, next_score) if is_min_layer else max(new_score, next_score)
+                # Break and return to calling fucntion if timout reached. 
                 if self.time_left() < self.TIMER_THRESHOLD:
                     raise SearchTimeout()
-            # marker = ""
-            # for _ in range(1, current_depth):
-            #     marker += "_"
-            #print(marker + str(score))
-            # node.name = str(new_score)
+            # Return the new score found for this level
             return new_score
 
-        # root_node = Node("*") 
-        root_node = None
-        if self.time_left() < self.TIMER_THRESHOLD:
-            raise SearchTimeout()
-        current_depth = 0
         # Body of minimax_decision:
-        best_move = (-1, -1)
         legal_moves = game.get_legal_moves()
+        # If there is no legal moves, then return (-1, -1)
         if (not legal_moves):
-            return best_move
+            return (-1, -1)
+        # Build the score based on the minmax fucntion 
         score = lambda legal_move: minmax_value(self,
                                                 game.forecast_move(legal_move),
-                                                current_depth + 1,
-                                                depth,
-                                                root_node)
-        best_move = max(game.get_legal_moves(), key=score)
-        # for pre, fill, node in RenderTree(root_node):
-        #     print("%s%s" % (pre, node.name))
-        return best_move
+                                                1,
+                                                depth)
+        # The parent node is always a max layer so return move for max score of all legal moves
+        return max(legal_moves, key=score)
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -309,8 +298,20 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            return self.alphabeta(game, 3)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -360,5 +361,43 @@ class AlphaBetaPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # My Code starts here
+        def minmax_value(self, state, current_depth, max_depth, is_min_layer=True):
+            """Implement depth-limited minimax search algorithm as described in
+            the lectures.
+            """
+            # Initialize the new score traking variable for this level
+            new_score = float("inf") if is_min_layer else float("-inf")
+            # If the game has reasched an end state, return the player as winner
+            if state.utility(state.active_player) != 0:
+                return new_score
+            # If the max depth was reached, return the current score 
+            if  max_depth == current_depth:
+                return self.score(state, self)
+            # For each legal move, calculate the score 
+            for legal_move in state.get_legal_moves():
+                next_score = minmax_value(self,
+                                          state.forecast_move(legal_move),
+                                          current_depth + 1,
+                                          max_depth,
+                                          (not is_min_layer))
+                # Replace new score if less or more depending on is_min_layer flag
+                new_score = min(new_score, next_score) if is_min_layer else max(new_score, next_score)
+                # Break and return to calling fucntion if timout reached. 
+                if self.time_left() < self.TIMER_THRESHOLD:
+                    raise SearchTimeout()
+            # Return the new score found for this level
+            return new_score
+
+        # Body of minimax_decision:
+        legal_moves = game.get_legal_moves()
+        # If there is no legal moves, then return (-1, -1)
+        if (not legal_moves):
+            return (-1, -1)
+        # Build the score based on the minmax fucntion 
+        score = lambda legal_move: minmax_value(self,
+                                                game.forecast_move(legal_move),
+                                                1,
+                                                depth)
+        # The parent node is always a max layer so return move for max score of all legal moves
+        return max(legal_moves, key=score)
